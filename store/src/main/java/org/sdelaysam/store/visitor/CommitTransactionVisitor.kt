@@ -1,20 +1,17 @@
 package org.sdelaysam.store.visitor
 
-import org.sdelaysam.store.Transaction
-import org.sdelaysam.store.TransactionalStoreImpl
-import org.sdelaysam.store.Visitor
+import org.sdelaysam.store.store.BaseStore
 
-internal class CommitTransactionVisitor : Visitor {
+internal class CommitTransactionVisitor : BaseVisitor() {
 
-    override fun visitStore(store: TransactionalStoreImpl) = Unit
-
-    override fun visitTransaction(transaction: Transaction) {
-        with(transaction) {
-            modifications.forEach {
-                parentStore.setValue(it.key, it.value)
-            }
-            deletedKeys.forEach {
-                parentStore.deleteKey(it)
+    override fun visitBaseStore(store: BaseStore) {
+        store.parent?.let { parent ->
+            store.getEntries().forEach {
+                if (it.value.isDeleted) {
+                    parent.deleteKey(it.key)
+                } else {
+                    parent.setValue(it.key, it.value.value)
+                }
             }
         }
     }

@@ -1,19 +1,17 @@
 package org.sdelaysam.store.visitor
 
-import org.sdelaysam.store.Transaction
-import org.sdelaysam.store.TransactionalStoreImpl
-import org.sdelaysam.store.Visitor
+import org.sdelaysam.store.store.BaseStore
 
-internal class KeysForValueVisitor(private val value: String) : Visitor {
+internal class KeysForValueVisitor(private val value: String) : BaseVisitor() {
 
     val keys = mutableSetOf<String>()
 
-    override fun visitStore(store: TransactionalStoreImpl) {
-        keys.addAll(store.keyValues.filter { it.value == value }.keys)
-    }
-
-    override fun visitTransaction(transaction: Transaction) {
-        keys.addAll(transaction.modifications.filter { it.value == value }.keys)
-        keys.removeAll { transaction.deletedKeys.contains(it) }
+    override fun visitBaseStore(store: BaseStore) {
+        keys.addAll(
+            store.getEntries()
+                .asSequence()
+                .filter { !it.value.isDeleted && it.value.value == value }
+                .map { it.key }
+        )
     }
 }
