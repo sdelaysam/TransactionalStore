@@ -1,4 +1,4 @@
-package org.sdelysam.store
+package org.sdelysam.store.store
 
 import org.junit.Assert.*
 import org.junit.Test
