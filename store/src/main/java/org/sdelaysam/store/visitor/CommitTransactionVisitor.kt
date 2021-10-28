@@ -7,10 +7,11 @@ internal class CommitTransactionVisitor : BaseVisitor() {
     override fun visitBaseStore(store: BaseStore) {
         store.parent?.let { parent ->
             store.getEntries().forEach {
-                if (it.value.isDeleted) {
+                val newValue = it.value.newValue
+                if (newValue == null) {
                     parent.deleteKey(it.key)
                 } else {
-                    parent.setValue(it.key, it.value.value)
+                    parent.setValue(it.key, newValue)
                 }
             }
         }

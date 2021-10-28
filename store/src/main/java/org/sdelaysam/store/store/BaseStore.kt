@@ -11,20 +11,25 @@ internal abstract class BaseStore(internal val parent: Store?) : Store {
     internal abstract fun getEntries(): Iterable<Map.Entry<String, StoreItem>>
 
     override fun setValue(key: String, value: String) {
-        setItem(key, StoreItem(value = value, isDeleted = false))
+        val oldValue = parent?.getValue(key)
+        if (oldValue != value) {
+            setItem(key, StoreItem(oldValue = oldValue, newValue = value))
+        }
     }
 
     override fun getValue(key: String): String? {
-        return getItem(key)
-            ?.takeIf { !it.isDeleted }
-            ?.let { it.value }
-            ?: parent?.getValue(key)
+        val item = getItem(key)
+        return when {
+            item == null -> parent?.getValue(key)
+            item.newValue == null -> null
+            else -> item.newValue
+        }
     }
 
     override fun deleteKey(key: String) {
-        val value = getItem(key)?.value ?: parent?.getValue(key)
-        if (value != null) {
-            setItem(key, StoreItem(value = value, isDeleted = true))
+        val oldValue = getItem(key)?.newValue ?: parent?.getValue(key)
+        if (oldValue != null) {
+            setItem(key, StoreItem(oldValue = oldValue, newValue = null))
         }
     }
 }
